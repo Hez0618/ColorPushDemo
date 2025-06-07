@@ -8,6 +8,10 @@ public class MainMenuManager : MonoBehaviour
     public Button settingsButton;
     public Button quitButton;
 
+
+    public Animator mainMenu_animator;
+    public Animator Back_animator;
+
     private void Start()
     {
         startButton.onClick.AddListener(StartGame);
@@ -21,9 +25,27 @@ public class MainMenuManager : MonoBehaviour
         SceneManager.LoadScene("LoadingScene");
     }
 
+
+
     void OpenSettings()
     {
         Debug.Log("settings");
+    }
+
+    public void OnClickLevelSelect()
+    {
+        mainMenu_animator.SetTrigger("ShowLevelSelect");
+    }
+
+    public void OnClickBackButton()
+    {
+        Back_animator.SetTrigger("BackToMenu");
+    }
+
+    public void OnClickLevelButton(int levelIndex)
+    {
+        SceneLoader.sceneToLoad = $"Level-{levelIndex}";
+        SceneManager.LoadScene("LoadingScene");
     }
 
     void QuitGame()

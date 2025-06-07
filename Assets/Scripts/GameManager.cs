@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,7 +16,8 @@ public class GameManager : MonoBehaviour
     public Button mainMenuButton;
     
     public Image fillImage;
-    public float totalTime = 60f;
+
+    public float totalTime = 120f;
     private float elapsedTime = 0f;
 
     private bool isPaused = false;
@@ -56,6 +58,16 @@ public class GameManager : MonoBehaviour
 
     private bool isTutorialShowing = false;
 
+    private int totalBoxCount;
+    private int absorbedBoxCount = 0;
+
+    public RectTransform fill;
+    public RectTransform glowRect;
+    public Image glowImage;
+    private float pulseSpeed = 2f;   
+    private float minAlpha = 0.1f;      
+    private float maxAlpha = 1f;     
+
 
     private void Awake()
     {
@@ -85,6 +97,9 @@ public class GameManager : MonoBehaviour
             playerStartPos = player.transform.position;
 
         allBoxes = Object.FindObjectsByType<PushableBox>(FindObjectsSortMode.None);
+        totalBoxCount = allBoxes.Length;
+        absorbedBoxCount = 0;
+
         boxStartPositions = new Vector3[allBoxes.Length];
         for (int i = 0; i < allBoxes.Length; i++)
         {
@@ -97,11 +112,23 @@ public class GameManager : MonoBehaviour
     {
         if (!isGameRunning||isGameWon) return;
 
+        if (absorbedBoxCount >= totalBoxCount)
+        {
+            Debug.Log("胜利条件达成！");
+            OnGameWin();
+        }
+
+
         if (elapsedTime < totalTime)
         {
             elapsedTime += Time.deltaTime;
             float progress = Mathf.Clamp01(1f - elapsedTime / totalTime);
             fillImage.fillAmount = progress;
+            glowRect.anchoredPosition = new Vector2(fill.rect.width*progress, 0f);
+            float alpha = Mathf.Lerp(minAlpha, maxAlpha, (Mathf.Sin(Time.time * pulseSpeed) + 1f) / 2f);
+            Color c = glowImage.color;
+            c.a = alpha;
+            glowImage.color = c;
             UpdateScoreLines(progress);
             if (progress <= 0f)
             {
@@ -211,7 +238,6 @@ public class GameManager : MonoBehaviour
         isGameWon = true;
         Debug.Log("Time Stopped!");
         int starsEarned = CalculateStars();
-
         StartCoroutine(DelayedVictorySequence(starsEarned));
     }
 
@@ -302,7 +328,7 @@ public class GameManager : MonoBehaviour
 
     public void ResetLevel()
     {
-
+        absorbedBoxCount = 0;
         if (player != null)
         {
             player.transform.position = playerStartPos;
@@ -331,12 +357,25 @@ public class GameManager : MonoBehaviour
         int currentIndex = SceneManager.GetActiveScene().buildIndex;
         if (currentIndex + 1 < SceneManager.sceneCountInBuildSettings)
         {
-            SceneManager.LoadScene(currentIndex + 1);
+            SceneLoader.sceneToLoad = $"Level-{currentIndex}";
+            SceneManager.LoadScene("LoadingScene");
         }
         else
         {
             //No Next Level
             SceneManager.LoadScene("MainMenu");
+        }
+    }
+
+    public void OnBoxAbsorbed()
+    {
+        absorbedBoxCount++;
+        Debug.Log($"箱子已吸入: {absorbedBoxCount} / {totalBoxCount}");
+
+        if (absorbedBoxCount >= totalBoxCount && isGameRunning && !isGameWon)
+        {
+            Debug.Log("所有箱子已吸入，触发胜利！");
+            OnGameWin();
         }
     }
 

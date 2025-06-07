@@ -24,6 +24,13 @@ public class PlayerController : MonoBehaviour
     private Coroutine colorLerpCoroutine;
     private float colorLerpDuration = 0.5f;
 
+    [HideInInspector]
+    public int splashContactCount = 0;
+    public bool isOnSplashTile => splashContactCount > 0;
+    public DeniedEffect deniedEffect;
+
+
+
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -42,6 +49,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (!GameManager.Instance.isGameRunning) return;
+
         //move
         if (isMoving) return;
 
@@ -57,48 +66,66 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(MoveOneGrid(inputDirection));
         }
 
-        //press TAB to change target
-        if (Input.GetKeyDown(KeyCode.Tab))
+        if (isOnSplashTile && (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.E)))
         {
-            FindNearbyBoxes();
-            SelectNextBox();
-            ShowSelectedBoxHighlight();
+            PlayShakeEffect();
+            if (deniedEffect != null)
+                deniedEffect.Play();
         }
 
-        if (selectedBoxIndex >= 0)
+
+        if (!isOnSplashTile)
         {
-
-            FindNearbyBoxes();
-
-
-            if (selectedBoxIndex >= nearbyBoxes.Count || !nearbyBoxes.Contains(nearbyBoxes[selectedBoxIndex]))
+            //TAB to select nearby boxes
+            if (Input.GetKeyDown(KeyCode.Tab))
             {
-                // 取消选中
-                selectedBoxIndex = -1;
-                RemoveArrow();
+                FindNearbyBoxes();
+                SelectNextBox();
+                ShowSelectedBoxHighlight();
+            }
+
+            if (selectedBoxIndex >= 0)
+            {
+
+                FindNearbyBoxes();
+
+
+                if (selectedBoxIndex >= nearbyBoxes.Count || !nearbyBoxes.Contains(nearbyBoxes[selectedBoxIndex]))
+                {
+                    
+                    selectedBoxIndex = -1;
+                    RemoveArrow();
+                }
+            }
+
+            // press E to change Color
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                if (selectedBoxIndex >= 0 && selectedBoxIndex < nearbyBoxes.Count)
+                {
+                    Color targetColor = nearbyBoxes[selectedBoxIndex].GetComponent<SpriteRenderer>().color;
+                    SetColorSmoothly(targetColor);
+                    //currentColor = nearbyBoxes[selectedBoxIndex].GetComponent<SpriteRenderer>().color;
+                    //UpdatePlayerColorVisual();
+                    Debug.Log($"玩家颜色已改变为：{currentColor}");
+                    RemoveArrow();
+                }
+                else
+                {
+                    Debug.Log("没有选中任何箱子");
+                }
             }
         }
+        
 
-        // press E to change Color
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (selectedBoxIndex >= 0 && selectedBoxIndex < nearbyBoxes.Count)
-            {
-                Color targetColor = nearbyBoxes[selectedBoxIndex].GetComponent<SpriteRenderer>().color;
-                if (colorLerpCoroutine != null)
-                    StopCoroutine(colorLerpCoroutine);
-                colorLerpCoroutine = StartCoroutine(SmoothChangeColor(targetColor));
-                //currentColor = nearbyBoxes[selectedBoxIndex].GetComponent<SpriteRenderer>().color;
-                //UpdatePlayerColorVisual();
-                Debug.Log($"玩家颜色已改变为：{currentColor}");
-                RemoveArrow();
-            }
-            else
-            {
-                Debug.Log("没有选中任何箱子");
-            }
-        }
+    }
 
+    public void SetColorSmoothly(Color targetColor)
+    {
+        if (colorLerpCoroutine != null)
+            StopCoroutine(colorLerpCoroutine);
+
+        colorLerpCoroutine = StartCoroutine(SmoothChangeColor(targetColor));
     }
 
     private IEnumerator SmoothChangeColor(Color targetColor)
@@ -116,6 +143,30 @@ public class PlayerController : MonoBehaviour
 
         sr.color = targetColor;
         currentColor = targetColor;
+    }
+
+    //when the player is on splash and try to change color 
+    public void PlayShakeEffect(float duration = 0.1f, float magnitude = 0.03f)
+    {
+        StartCoroutine(Shake(duration, magnitude));
+    }
+
+    private IEnumerator Shake(float duration, float magnitude)
+    {
+        Vector3 originalPos = transform.position;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            float offsetX = Random.Range(-1f, 1f) * magnitude;
+            float offsetY = Random.Range(-1f, 1f) * magnitude;
+            transform.position = originalPos + new Vector3(offsetX, offsetY, 0f);
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = originalPos;
     }
 
 
@@ -269,40 +320,6 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.color = currentColor;
     }
 
-    public void AbsorbToGoal(Vector3 goalPosition)
-    {
-        StartCoroutine(AbsorbAnimation(goalPosition));
-    }
-
-    private IEnumerator AbsorbAnimation(Vector3 goalPosition)
-    {
-        isMoving = true;
-        enabled = false; 
-
-        float duration = 0.8f;
-        float elapsed = 0f;
-
-        Vector3 startPos = transform.position;
-        Vector3 startScale = transform.localScale;
-
-        while (elapsed < duration)
-        {
-            float t = elapsed / duration;
-
-            transform.position = Vector3.Lerp(startPos, goalPosition, t);
-            transform.localScale = Vector3.Lerp(startScale, Vector3.zero, t);
-            transform.Rotate(0, 0, 360f * Time.deltaTime); 
-
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        transform.localScale = Vector3.zero;
-        transform.position = goalPosition;
-
-
-    }
-
 
     private void CreateOutline()
     {
@@ -337,6 +354,7 @@ public class PlayerController : MonoBehaviour
             arrowInstance = null;
         }
     }
+
 
 
 }
