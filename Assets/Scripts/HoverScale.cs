@@ -27,6 +27,7 @@ public class HoverScaleOnly : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        AudioManager.Instance.Play("Hover");
         isHovering = true;
     }
 

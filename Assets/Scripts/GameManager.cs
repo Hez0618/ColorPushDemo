@@ -17,10 +17,11 @@ public class GameManager : MonoBehaviour
     
     public Image fillImage;
 
-    public float totalTime = 120f;
+    public float totalTime = 5f;
     private float elapsedTime = 0f;
 
     private bool isPaused = false;
+    private bool isPausing = false;
 
     public bool isGameRunning = true;
     public bool isGameWon = false;
@@ -66,9 +67,10 @@ public class GameManager : MonoBehaviour
     public Image glowImage;
     private float pulseSpeed = 2f;   
     private float minAlpha = 0.1f;      
-    private float maxAlpha = 1f;     
+    private float maxAlpha = 1f;
 
-
+    public Animator gameOverAnimator;
+    public Animator animator;
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -77,13 +79,10 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-
+        AudioManager.Instance.PlayWithFadeIn("Music", 2f);
         pauseMenuUI.SetActive(false);
 
         helpButton.onClick.AddListener(ToggleTutorialPanel);
-
-
-        menuToggleButton.onClick.AddListener(TogglePauseMenu);
         resumeButton.onClick.AddListener(ResumeGame);
         mainMenuButton.onClick.AddListener(ReturnToMainMenu);
         backToMenuButton.onClick.AddListener(ReturnToMainMenu);
@@ -114,7 +113,7 @@ public class GameManager : MonoBehaviour
 
         if (absorbedBoxCount >= totalBoxCount)
         {
-            Debug.Log("胜利条件达成！");
+            Debug.Log("Win!");
             OnGameWin();
         }
 
@@ -136,10 +135,20 @@ public class GameManager : MonoBehaviour
             }
         }
 
-
+        
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            TogglePauseMenu();
+            if(!isPaused && !isPausing)
+            {
+                StartPauseSequence();
+            }
+            else
+            {
+                animator.SetTrigger("BackToMenuTrigger");
+                isPausing = false;
+                isPaused = false;
+            }
+
         }
 
 
@@ -274,6 +283,7 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
+            AudioManager.Instance.Play("Bonus");
             stars[i].gameObject.SetActive(true);
             stars[i].color = new Color(1f, 1f, 1f, 0f);
 
@@ -292,11 +302,27 @@ public class GameManager : MonoBehaviour
     }
 
 
-    public void TogglePauseMenu()
+    public void StartPauseSequence()
     {
-        isPaused = !isPaused;
-        pauseMenuUI.SetActive(isPaused);
-        Time.timeScale = isPaused ? 0f : 1f;
+        if (isPaused || isPausing) return;
+
+        isPausing = true;
+        animator.SetTrigger("PauseMenuTrigger");
+    }
+
+    public void PauseGame()
+    {
+        pauseMenuUI.SetActive(true);
+        Time.timeScale = 0f;
+        isPaused = true;
+        isPausing = false;
+    }
+
+    public void OnClickBackButton()
+    {
+        animator.SetTrigger("BackToMenuTrigger");
+        isPausing = false;
+        isPaused = false;
     }
 
 
@@ -316,7 +342,8 @@ public class GameManager : MonoBehaviour
     private void GameOver()
     {
         isGameRunning = false;
-        Debug.Log("GameOver！");
+        print("GAME OVER!");
+        gameOverAnimator.SetTrigger("GameOver");
 
     }
 
@@ -370,14 +397,16 @@ public class GameManager : MonoBehaviour
     public void OnBoxAbsorbed()
     {
         absorbedBoxCount++;
-        Debug.Log($"箱子已吸入: {absorbedBoxCount} / {totalBoxCount}");
+        Debug.Log($"Absorbed Boxese: {absorbedBoxCount} / {totalBoxCount}");
 
         if (absorbedBoxCount >= totalBoxCount && isGameRunning && !isGameWon)
         {
-            Debug.Log("所有箱子已吸入，触发胜利！");
+            Debug.Log("All Boxes Absorbed");
             OnGameWin();
         }
     }
+
+
 
 
 }

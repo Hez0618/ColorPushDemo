@@ -17,6 +17,7 @@ public class MainMenuManager : MonoBehaviour
         startButton.onClick.AddListener(StartGame);
         settingsButton.onClick.AddListener(OpenSettings);
         quitButton.onClick.AddListener(QuitGame);
+        AudioManager.Instance.PlayWithFadeIn("Music", 2f);
     }
 
     void StartGame()

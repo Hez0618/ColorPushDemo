@@ -49,7 +49,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (!GameManager.Instance.isGameRunning) return;
+        
 
         //move
         if (isMoving) return;
@@ -68,6 +68,7 @@ public class PlayerController : MonoBehaviour
 
         if (isOnSplashTile && (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.E)))
         {
+            AudioManager.Instance.Play("Error");
             PlayShakeEffect();
             if (deniedEffect != null)
                 deniedEffect.Play();
@@ -104,6 +105,7 @@ public class PlayerController : MonoBehaviour
                 if (selectedBoxIndex >= 0 && selectedBoxIndex < nearbyBoxes.Count)
                 {
                     Color targetColor = nearbyBoxes[selectedBoxIndex].GetComponent<SpriteRenderer>().color;
+                    AudioManager.Instance.Play("Dye");
                     SetColorSmoothly(targetColor);
                     //currentColor = nearbyBoxes[selectedBoxIndex].GetComponent<SpriteRenderer>().color;
                     //UpdatePlayerColorVisual();
@@ -197,6 +199,7 @@ public class PlayerController : MonoBehaviour
                     }
                     else
                     {
+                        AudioManager.Instance.Play("Hit");
                         Debug.Log("Obstacle!");
                         isMoving = false;
                         yield break;
@@ -211,7 +214,8 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                
+                PlayShakeEffect();
+                AudioManager.Instance.Play("Hit");
                 Debug.Log("Hit Wall");
                 print(hit.gameObject.name);
                 isMoving = false;
@@ -219,6 +223,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        AudioManager.Instance.Play("Move");
 
         float elapsed = 0f;
         float duration = 1f / moveSpeed;
@@ -296,7 +301,7 @@ public class PlayerController : MonoBehaviour
 
             Transform targetBox = nearbyBoxes[selectedBoxIndex].transform;
 
-
+            AudioManager.Instance.Play("Note");
             arrowInstance = Instantiate(arrowPrefab);
             arrowInstance.transform.SetParent(targetBox);
             arrowInstance.transform.localPosition = new Vector3(0, 0.5f, 0); 

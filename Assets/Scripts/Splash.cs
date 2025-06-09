@@ -13,6 +13,7 @@ public class Splash : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            AudioManager.Instance.Play("Splash");
             PlayerController player = other.GetComponent<PlayerController>();
             if (player != null)
             {

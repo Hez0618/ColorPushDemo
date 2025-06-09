@@ -52,6 +52,7 @@ public class HoverRotateAndScale : MonoBehaviour, IPointerEnterHandler, IPointer
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        AudioManager.Instance.Play("Hover");
         isHovering = true;
         isReturning = false;
     }

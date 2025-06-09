@@ -43,6 +43,7 @@ public class GoalTrigger : MonoBehaviour
         if (ColorUtils.IsSimilar(boxColor, goalColor))
         {
             isMatched = true;
+            AudioManager.Instance.Play("Suck");
             GameManager.Instance.OnBoxAbsorbed();
             box.AbsorbToGoal(transform.position);
         }
