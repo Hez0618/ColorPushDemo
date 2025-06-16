@@ -26,11 +26,13 @@
 
 ##  ゲームプレイ / Gameplay
 
-- 🔗 **ダウンロード**：[Windows版をダウンロード](https://github.com/Hez0618/ColorPush/releases)
+- ▶️ **プレイ動画**：https://www.youtube.com/watch?v=weSd4Wq2lgI
 
  ---
 
  ## ダウンロード / Download
+
+- 🔗 **ダウンロード**：[Windows版をダウンロード](https://github.com/Hez0618/ColorPush/releases)
 
  ---
 
