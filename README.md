@@ -26,6 +26,8 @@
 
 ##  ゲームプレイ / Gameplay
 
+- 🔗 **ダウンロード**：[Windows版をダウンロード](https://github.com/Hez0618/ColorPush/releases)
+
  ---
 
  ## ダウンロード / Download
